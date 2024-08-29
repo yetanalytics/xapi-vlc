@@ -13,7 +13,7 @@ def send(data):
             "X-Experience-API-Version": "1.0.3"
             }
 
-    response = requests.post(url, json=data, headers=headers, auth=HTTPBasicAuth(lrs_key, lrs_secret))
+    response = requests.post(url+"/xapi/statements", json=data, headers=headers, auth=HTTPBasicAuth(lrs_key, lrs_secret))
 
     if response.ok:
         print("statement sent successfully:", response.text)

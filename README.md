@@ -1,6 +1,6 @@
 # XAPI VLC
 
-XAPI integration with VLC player
+An XAPI integrated VLC player
 
 ### Dev Setup
 
@@ -20,4 +20,13 @@ The dependencies will be made available in the `env` directory.
 #### Running the Player.
 
 1) put a movie file somewhere. For the purposes of demonstration, I'm putting a movie file in `.resources/movie.mkv`
-2) You can run the player with the command `python -m xapi_vlc.main .resources/movie.mkv`. Happy Hunting!
+2) Start an LRS. Note down the endpoint, key, and secret to the LRS.
+3) Set the following env vars:
+
+```
+VLC_LRS_ENDPOINT=<lrs-endpoint>
+VLC_LRS_KEY=<lrs-key>
+VLC_LRS_SECRET=<lrs-secret>
+```
+
+4) You can run the player with the command `python -m xapi_vlc.main --content .resources/movie.mkv --email henk@yetanalytics.com`.

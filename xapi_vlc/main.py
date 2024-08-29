@@ -1,55 +1,22 @@
 import sys
 import vlc
+import argparse
+from xapi_vlc.xapi import client
+from xapi_vlc.xapi import statement
 from PySide6.QtWidgets import QApplication, QMainWindow
 from PySide6.QtCore import Qt
 
 
-# Define a logging function that takes the player as an argument
-def make_logger(player):
-    def print_media_metadata(player):
-        # Get the associated media object
-        media = player.get_media()
-        
-        if not media:
-            print("No media loaded")
-            return
-        
-        # Ensure metadata is parsed
-        media.parse()  # Can use media.parse_with_options(vlc.MediaParseFlag.network) if needed
-        
-        # Get the filename (Media Resource Locator, MRL)
-        mrl = media.get_mrl()
-        print(f"Filename (MRL): {mrl}")
-        
-        # Extracting other metadata
-        title = media.get_meta(vlc.Meta.Title)
-        artist = media.get_meta(vlc.Meta.Artist)
-        album = media.get_meta(vlc.Meta.Album)
-        genre = media.get_meta(vlc.Meta.Genre)
-        track_number = media.get_meta(vlc.Meta.TrackNumber)
-        
-        # Print out the metadata
-        print(f"Title: {title}")
-        print(f"Artist: {artist}")
-        print(f"Album: {album}")
-        print(f"Genre: {genre}")
-        print(f"Track Number: {track_number}")
+def make_client(player, userid):
+    
+    def client_fn(event):
+        data = statement.create(event, player, userid) 
+        client.send(data)
 
-    def log(event):
-        # Get the current playback time in milliseconds
-        playback_time = player.get_time()
-        
-        # Convert to seconds for easier reading (optional)
-        playback_time_seconds = playback_time / 1000.0
-        
-        # Log the event time
-        print(f"Event type: {event.type} occurred at {playback_time_seconds:.2f} seconds")
-
-        print_media_metadata(player)
-    return log
+    return client_fn
 
 class VLCWindow(QMainWindow):
-    def __init__(self, filepath):
+    def __init__(self, filepath=None, userid=None):
         super().__init__()
 
         # Set up VLC player
@@ -60,11 +27,12 @@ class VLCWindow(QMainWindow):
         self.player.set_nsobject(self.winId())
 
         # Attach Events
-        logger = make_logger(self.player)
+        # logger = make_logger(self.player)
+        client = make_client(self.player, userid)
         event_manager = self.player.event_manager()
-        event_manager.event_attach(vlc.EventType.MediaPlayerPlaying, logger)
-        event_manager.event_attach(vlc.EventType.MediaPlayerEndReached, logger)
-        event_manager.event_attach(vlc.EventType.MediaPlayerPaused, logger)
+        event_manager.event_attach(vlc.EventType.MediaPlayerPlaying, client)
+        event_manager.event_attach(vlc.EventType.MediaPlayerEndReached, client)
+        event_manager.event_attach(vlc.EventType.MediaPlayerPaused, client)
 
         # Start playing the media
         self.player.play()
@@ -91,9 +59,15 @@ class VLCWindow(QMainWindow):
         event.accept()
 
 def main():
-    filepath = sys.argv[-1]
+    parser = argparse.ArgumentParser(description="VLC Player that sends statements to an LRS.")
+    parser.add_argument('--content', type=str, required=True, help="Path to content to be played.")
+    parser.add_argument('--userid', type=str, required=True, help="User ID. (aka email)")
+
+    args = parser.parse_args()
+
+
     app = QApplication(sys.argv)
-    window = VLCWindow(filepath)
+    window = VLCWindow(filepath=args.content, userid=args.userid)
     window.show()
     sys.exit(app.exec())
 
