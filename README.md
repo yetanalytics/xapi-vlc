@@ -31,5 +31,11 @@ VLC_LRS_SECRET=<lrs-secret>
 
 4) You can run the player with the command
 ```
-python -m xapi_vlc.main --content .resources/movie.mkv --userid henk@yetanalytics.com
+python -m xapi_vlc.main --content .resources/movie.mkv --userid example@domain.com
 ```
+
+### License
+
+Copyright © 2024 Yet Analytics, Inc.
+
+This module is licensed under the GNU Lesser General Public License 2.1 or later.
