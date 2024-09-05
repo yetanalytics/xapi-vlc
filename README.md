@@ -24,7 +24,7 @@ The dependencies will be made available in the `env` directory.
 3) Set the following env vars:
 
 ```
-VLC_LRS_ENDPOINT=<lrs-endpoint>
+VLC_LRS_DOMAIN=<lrs-endpoint>
 VLC_LRS_KEY=<lrs-key>
 VLC_LRS_SECRET=<lrs-secret>
 ```
