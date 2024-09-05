@@ -6,7 +6,7 @@ def send(data):
     # get creds go here
     lrs_key = os.environ.get('VLC_LRS_KEY')
     lrs_secret = os.environ.get('VLC_LRS_SECRET')
-    url = os.environ.get('VLC_LRS_ENDPOINT')
+    url = os.environ.get('VLC_LRS_DOMAIN')
 
     headers = {
             "Content-Type": "application/json",
