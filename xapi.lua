@@ -6,13 +6,23 @@ function descriptor()
     }
 end
 
+-- *************** Configuration ************
+
 local api_key = ""
 local api_secret = ""
 local api_url = ""
 local api_userid = ""
 local b='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
+local config_file_path = ""
+
+-- *************** Events ************
 
 function activate()
+  api_userid = get_uid()
+  config_file_path = get_vlc_config_directory() .. "config.txt"
+  load_config(config_file_path)
+  vlc.msg.info("config_file_path: "..config_file_path)
+  vlc.msg.info("UID is: " .. api_userid)
   show_api_settings_dialog()
 
   if socket and http then
@@ -29,15 +39,13 @@ function input_changed()
     vlc.msg.info("[Now Playing] input_changed")
 end
 
--- *************** Hook ************
-
 function playing_changed()
   vlc.msg.info("[Now Playing] playing_changed")
 
   -- Status
   local status = vlc.playlist.status()
   vlc.msg.info("Status: " .. status)
-  
+
   -- Metadata
   local input = vlc.object.input()
   if not input then
@@ -46,6 +54,142 @@ function playing_changed()
   end
   send_metadata(input, status)
 end
+
+-- *************** Read Config ************
+
+function trim(s)
+  return (s:gsub("^%s*(.-)%s*$", "%1"))
+end
+
+function get_uid()
+  local command = 'whoami '
+  local handle = io.popen(command)
+  local username = handle:read("*a")
+  handle:close()
+  if not username then
+    return ""
+  else
+    return trim(username)
+  end
+end
+
+function get_vlc_config_directory()
+  local config_dir
+
+  -- Check the first character of package.config to determine the OS
+  if package.config:sub(1,1) == '/' then
+    -- Linux or macOS
+    if os.getenv("HOME") then
+      if io.popen("uname"):read("*l") == "Darwin" then
+        -- macOS
+        config_dir = os.getenv("HOME") .. "/Library/Preferences/org.videolan.vlc/"
+      else
+        -- Linux
+        config_dir = os.getenv("HOME") .. "/.config/vlc/"
+      end
+    end
+  else
+    -- Windows
+    config_dir = os.getenv("APPDATA") .. "\\vlc\\"
+  end
+
+  if not config_dir then
+    vlc.msg.err("Could not determine VLC configuration directory.")
+    return nil
+  end
+
+  -- Ensure the directory exists (for Linux/macOS, `mkdir -p` is supported)
+  local result
+  if package.config:sub(1,1) == '/' then
+    result = os.execute('mkdir -p "' .. config_dir .. '"')
+  else
+    -- For Windows, use mkdir
+    result = os.execute('mkdir "' .. config_dir .. '"')
+  end
+
+  if result ~= 0 then
+    vlc.msg.err("Directory already exists: " .. config_dir)
+    return config_dir
+  end
+
+  return config_dir
+end
+
+function read_config(file_path)
+  local config = {}
+  local file = io.open(file_path, "r")
+
+  if not file then
+    vlc.msg.err("Could not open config file: " .. file_path)
+    return nil
+  end
+
+  for line in file:lines() do
+    local key, value = string.match(line, "([%w_]+)%s*=%s*(%S+)")
+    if key and value then
+      config[key] = value
+    else
+      vlc.msg.err("Invalid line in config file: " .. line)
+    end
+  end
+
+  print_table(config)
+
+  file:close()
+
+  -- Check if essential keys are present
+  if not config["api_key"] or not config["api_secret"] or not config["api_url"] then
+    vlc.msg.err("Config file is missing required keys (api_key, api_secret, api_url)")
+    return nil
+  end
+
+  return config
+end
+
+function print_table(tbl)
+  for key, value in pairs(tbl) do
+    vlc.msg.info(key .. " = " .. tostring(value))
+  end
+end
+
+-- Function to load configuration
+function load_config(file_path)
+  local config = read_config(file_path)
+  if config then
+    if config["api_userid"] then
+      api_userid = config["api_userid"]
+    end
+    api_key = config["api_key"]
+    api_secret = config["api_secret"]
+    api_url = config["api_url"]
+
+  else
+    vlc.msg.err("Failed to load config.")
+  end
+end
+
+function write_config(config, file_path)
+  -- Open the file for writing ("w" overwrites the file)
+  local file = io.open(file_path, "w")
+
+  if not file then
+    vlc.msg.err("No config file exists at " .. file_path .. " ...creating one.")
+    io.popen("touch " .. filepath):close()
+    file = io.open(file_path, "w")
+  end
+
+  -- Iterate over the key-value pairs in the config table
+  for key, value in pairs(config) do
+    -- Write each key-value pair in the format: key = value
+    file:write(key .. " = " .. tostring(value) .. "\n")
+  end
+
+  -- Close the file
+  file:close()
+  return true
+end
+
+-- *************** Hook ************
 
 -- Function to retrieve metadata and send it off
 function send_metadata(input, status)
@@ -110,6 +254,11 @@ function save_api_settings()
     api_url = api_url_input:get_text()
     api_userid = api_userid_input:get_text()
 
+    write_config({api_userid = api_userid,
+                  api_key = api_key,
+                  api_secret = api_secret,
+                  api_url = api_url}, config_file_path)
+
     -- Close the dialog after saving
     close_dialog()
 end
@@ -133,7 +282,7 @@ function form_statement(args)
   local object = video_url .. "/" .. title
 
     -- Manually construct the JSON string with results
-  local json_statement = 
+  local json_statement =
     '{' ..
       '"actor": {' ..
         '"mbox": "mailto:' .. api_userid .. '",' ..
@@ -152,9 +301,9 @@ end
 
 -- *************** Rest Client ************
 
--- shamelessly ripped from: http://lua-users.org/wiki/BaseSixtyFour 
+-- shamelessly ripped from: http://lua-users.org/wiki/BaseSixtyFour
 function base64_encode(data)
-  return ((data:gsub('.', function(x) 
+  return ((data:gsub('.', function(x)
     local r,b='',x:byte()
     for i=8,1,-1 do r=r..(b%2^i-b%2^(i-1)>0 and '1' or '0') end
     return r;
