@@ -11,6 +11,7 @@ end
 local api_key = ""
 local api_secret = ""
 local api_url = ""
+local api_homepage = ""
 local api_userid = ""
 local b='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
 local config_file_path = ""
@@ -133,15 +134,9 @@ function read_config(file_path)
     end
   end
 
-  print_table(config)
+  -- print_table(config)
 
   file:close()
-
-  -- Check if essential keys are present
-  if not config["api_key"] or not config["api_secret"] or not config["api_url"] then
-    vlc.msg.err("Config file is missing required keys (api_key, api_secret, api_url)")
-    return nil
-  end
 
   return config
 end
@@ -156,13 +151,19 @@ end
 function load_config(file_path)
   local config = read_config(file_path)
   if config then
-    if config["api_userid"] then
-      api_userid = config["api_userid"]
+    for key, value in pairs(config) do
+      if key == "api_homepage" then
+        api_homepage = value
+      elseif key == "api_key" then
+        api_key = value
+      elseif key == "api_secret" then
+        api_secret = value
+      elseif key == "api_url" then
+        api_url = value
+      else
+        vlc.msg.err("Unknown key " .. key .. " found in config at filepath " .. file_path)
+      end
     end
-    api_key = config["api_key"]
-    api_secret = config["api_secret"]
-    api_url = config["api_url"]
-
   else
     vlc.msg.err("Failed to load config.")
   end
@@ -228,8 +229,8 @@ function show_api_settings_dialog()
     -- Create a dialog window
     dlg = vlc.dialog("xAPI  Integration Settings")
 
-    dlg:add_label("User ID (email):", 1, 1)
-    api_userid_input = dlg:add_text_input(api_userid, 1, 2)
+    dlg:add_label("Homepage URL:", 1, 1)
+    api_homepage_input = dlg:add_text_input(api_homepage, 1, 2)
 
     dlg:add_label("API Key:", 1, 3)
     api_key_input = dlg:add_text_input(api_key, 1, 4)
@@ -252,9 +253,9 @@ function save_api_settings()
     api_key = api_key_input:get_text()
     api_secret = api_secret_input:get_text()
     api_url = api_url_input:get_text()
-    api_userid = api_userid_input:get_text()
+    api_homepage = api_homepage_input:get_text()
 
-    write_config({api_userid = api_userid,
+    write_config({api_homepage = api_homepage,
                   api_key = api_key,
                   api_secret = api_secret,
                   api_url = api_url}, config_file_path)
@@ -285,7 +286,10 @@ function form_statement(args)
   local json_statement =
     '{' ..
       '"actor": {' ..
-        '"mbox": "mailto:' .. api_userid .. '",' ..
+        '"account": {' ..
+          '"homePage": "' .. api_homepage .. '",' ..
+          '"name": "' .. api_userid .. '"' ..
+        '},' ..
         '"objectType": "Agent"' ..
       '},' ..
       '"verb": {' ..
