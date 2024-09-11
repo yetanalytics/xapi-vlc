@@ -209,16 +209,21 @@ function send_metadata(input, status)
   -- Fetch metadata
   local title = item:name() or "Unknown Title"
   local duration = item:duration() or "Unknown Duration"
-  local current_time = vlc.var.get(input, "time") or "Unknown Time"
+  local current_time = (vlc.var.get(input, "time") / 1000000) or "Unknown Time"
   local position = vlc.var.get(input, "position") or "Unknown Position"
 
   -- Log metadata
   vlc.msg.info("Title: " .. title)
   vlc.msg.info("Duration: " .. (duration ~= -1 and (duration .. " seconds") or "Live Stream"))
-  vlc.msg.info("Current Time: " .. (current_time / 1000000) .. " seconds")
+  vlc.msg.info("Current Time: " .. current_time .. " seconds")
   vlc.msg.info("Current Position: " .. (position * 100) .. "%")
-  local statement = form_statement({title = title, status = status})
-  vlc.msg.info(statement)
+
+  local statement = form_statement({title = title,
+                                    status = status,
+                                    duration = tostring(duration),
+                                    current_time = tostring(current_time),
+                                    progress = tostring(position)})
+  vlc.msg.info("Statement: " .. statement)
   post_request(statement)
 end
 
@@ -276,11 +281,18 @@ end
 function form_statement(args)
   local title = args.title
   local status = args.status
+  local duration = args.duration
+  local progress = args.progress
+  local current_time = args.current_time
   local base_url = "https://yet.systems/xapi/profiles/vlc"
   local verb = base_url .. "/verbs/" .. status
   local activity_url = base_url .. "/activity"
   local video_url = activity_url .. "/video"
   local object = video_url .. "/" .. title
+  local extension_url = base_url .. "/extensions/"
+  local duration_url = extension_url .. "duration"
+  local progress_url = extension_url .. "progress"
+  local current_time_url = extension_url .. "currentTime"
 
     -- Manually construct the JSON string with results
   local json_statement =
@@ -298,6 +310,13 @@ function form_statement(args)
       '"object": {' ..
         '"id": "' .. object .. '",' ..
         '"objectType": "Activity"' ..
+      '},' ..
+      '"result": {' ..
+        '"extensions": {' ..
+          '"' .. duration_url .. '": ' .. duration .. ',' ..
+          '"' .. progress_url .. '": ' .. progress .. ',' ..
+          '"' .. current_time_url .. '": ' .. current_time ..
+        '}' ..
       '}' ..
     '}'
   return json_statement
