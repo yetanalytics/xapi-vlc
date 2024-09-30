@@ -18,3 +18,9 @@ An XAPI integrated VLC player
 ### Dev
 
 All code is located at `xapi.lua`. In VLC you can go to the console log (via ctrl+M) to see what the code is doing. If you wish to update the plugin, just save your changes to `xapi.lua` and run `make install` again.
+
+### License
+
+Copyright © 2024 Yet Analytics, Inc.
+
+This module is licensed under the GNU Lesser General Public License 2.1 or later.
