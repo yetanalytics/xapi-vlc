@@ -20,7 +20,7 @@ local config_file_path = ""
 
 function activate()
   api_userid = get_uid()
-  config_file_path = get_vlc_config_directory() .. "config.txt"
+  config_file_path = get_vlc_config_directory() .. "xapi-extension-config.txt"
   load_config(config_file_path)
   vlc.msg.info("config_file_path: "..config_file_path)
   vlc.msg.info("UID is: " .. api_userid)
