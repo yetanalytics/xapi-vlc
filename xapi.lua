@@ -10,8 +10,7 @@ end
 
 local api_key = ""
 local api_secret = ""
-local api_domain = ""
-local api_protocol = ""
+local api_endpoint = ""
 local api_homepage = ""
 local api_userid = ""
 local b='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
@@ -159,10 +158,8 @@ function load_config(file_path)
         api_key = value
       elseif key == "api_secret" then
         api_secret = value
-      elseif key == "api_domain" then
-        api_domain = value
-      elseif key == "api_protocol" then
-        api_protocol = value
+      elseif key == "api_endpoint" then
+        api_endpoint = value
       else
         vlc.msg.err("Unknown key " .. key .. " found in config at filepath " .. file_path)
       end
@@ -246,32 +243,27 @@ function show_api_settings_dialog()
     dlg:add_label("API Secret:", 1, 5)
     api_secret_input = dlg:add_password(api_secret, 1, 6)
 
-    dlg:add_label("API Domain:", 1, 7)
-    api_domain_input = dlg:add_text_input(api_domain, 1, 8)
-
-    dlg:add_label("API Protocol:", 1, 9)
-    api_protocol_input = dlg:add_text_input(api_protocol, 1, 10)
+    dlg:add_label("API Endpoint:", 1, 7)
+    api_endpoint_input = dlg:add_text_input(api_endpoint, 1, 8)
     
     -- Add a Save button
-    dlg:add_button("Save", save_api_settings, 1, 11)
+    dlg:add_button("Save", save_api_settings, 1, 9)
 
     -- Add a Cancel button to close the dialog
-    dlg:add_button("Cancel", close_dialog, 1, 12)
+    dlg:add_button("Cancel", close_dialog, 1, 10)
 end
 
 -- Function to save the API settings
 function save_api_settings()
     api_key = api_key_input:get_text()
     api_secret = api_secret_input:get_text()
-    api_domain = api_domain_input:get_text()
-    api_protocol = api_protocol_input:get_text()
+    api_endpoint = api_endpoint_input:get_text()
     api_homepage = api_homepage_input:get_text()
 
     write_config({api_homepage = api_homepage,
                   api_key = api_key,
                   api_secret = api_secret,
-                  api_domain = api_domain,
-                  api_protocol = api_protocol}, config_file_path)
+                  api_endpoint = api_endpoint}, config_file_path)
 
     -- Close the dialog after saving
     close_dialog()
@@ -350,7 +342,7 @@ function post_request(json_body)
   -- Encode API key and secret as Base64 for Basic Auth
   local auth = "Basic " .. base64_encode(api_key .. ":" .. api_secret)
     -- Construct the curl command to make the HTTP POST request
-  local command = 'curl -X POST ' .. api_protocol .. '://' .. api_domain .. '/xapi/statements '
+  local command = 'curl -X POST ' .. api_endpoint .. '/statements '
       .. '-H "Content-Type: application/json" '
       .. '-H "Authorization: ' .. auth .. '" '
       .. '-H "X-Experience-API-Version: 1.0.3" '
