@@ -11,7 +11,7 @@ An XAPI integrated VLC player
 - Homepage URL: Domain specific URL to identify from which system the user is located
 - API Key: Key for LRS
 - API Secret: Secret for LRS
-- API Endpoint: Endpoint for LRS (example: https://localhost:8080/xapi, will hit endpoint at /statements)
+- API Endpoint: Endpoint for LRS (example: https://localhost:8080/xapi)
 
 4) Play a video of your choice and verify the data is flowing from the LRS.
 
