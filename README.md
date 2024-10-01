@@ -1,11 +1,11 @@
-# XAPI VLC
+# xAPI VLC
 
-An XAPI integrated VLC player
+An xAPI integrated VLC player
 
 ### Setup
 
-1) Run `make install` . This will move the plugin into the appropriate directory for VLC.
-2) Open VLC. when you do, click on the view dropdown and click 'xAPI Integration.'
+1) Run `make install`. This will move the plugin into the appropriate directory for VLC.
+2) Open VLC. When you do, click on the view dropdown and click 'xAPI Integration'.
 3) Enter the fields in the form:
 
 - Homepage URL: Domain specific URL to identify from which system the user is located
