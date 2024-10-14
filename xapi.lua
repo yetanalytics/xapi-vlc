@@ -303,7 +303,7 @@ function form_statement(args)
   local title = args.title
   local status = args.status
   local duration = args.duration
-  local progress = args.progress
+  local progress = tonumber(args.progress)
   local current_time = args.current_time
   if progress >= threshold then
     status = "complete"
