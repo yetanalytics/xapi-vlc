@@ -51,7 +51,7 @@ configure() {
         homepage="$OPTARG"
         ;;
       *)
-        echo "Usage: $0 -k <api_key> -s <api_secret> -u <api_url> -t <threshold>"
+        echo "Usage: $0 -k <api_key> -s <api_secret> -u <api_url> -t <threshold> -h <homepage>"
         exit 1
         ;;
     esac
