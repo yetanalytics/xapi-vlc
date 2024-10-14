@@ -15,13 +15,17 @@ local api_homepage = ""
 local api_userid = ""
 local b='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
 local config_file_path = ""
-
+local threshold_file_path = ""
+local threshold = 0.9
 -- *************** Events ************
 
 function activate()
   api_userid = get_uid()
   config_file_path = get_vlc_config_directory() .. "xapi-extension-config.txt"
+  threshold_file_path = get_vlc_config_directory() .. "xapi-threshold-config.txt"
   load_config(config_file_path)
+  load_threshold_config(threshold_file_path)
+  vlc.msg.info("threshold value is: "..threshold)
   vlc.msg.info("config_file_path: "..config_file_path)
   vlc.msg.info("UID is: " .. api_userid)
   show_api_settings_dialog()
@@ -166,6 +170,23 @@ function load_config(file_path)
     end
   else
     vlc.msg.err("Failed to load config.")
+  end
+end
+
+function load_threshold_config(file_path)
+  local config = read_config(file_path)
+  if config then
+    for key, value in pairs(config) do
+      if key == "threshold" then
+        threshold = tonumber(value)
+      else
+        vlc.msg.err("Unknown threshold config. setting threshold to default (0.9)")
+        threshold = 0.9
+      end
+    end
+  else
+    vlc.msg.err("Unable to load threshold config. setting threshold to default (0.9)")
+    threshold = 0.9
   end
 end
 
