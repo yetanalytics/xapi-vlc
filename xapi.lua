@@ -305,6 +305,9 @@ function form_statement(args)
   local duration = args.duration
   local progress = args.progress
   local current_time = args.current_time
+  if progress >= threshold then
+    status = "complete"
+  end
   local base_url = "https://yet.systems/xapi/profiles/vlc"
   local verb = base_url .. "/verbs/" .. status
   local activity_url = base_url .. "/activity"
