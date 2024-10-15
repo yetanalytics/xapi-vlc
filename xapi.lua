@@ -17,6 +17,7 @@ local b='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
 local config_file_path = ""
 local threshold_file_path = ""
 local threshold = 0.9
+local is_completed = false
 -- *************** Events ************
 
 function activate()
@@ -42,6 +43,7 @@ end
 
 function input_changed()
     vlc.msg.info("[Now Playing] input_changed")
+    is_completed = false
 end
 
 function playing_changed()
@@ -305,11 +307,14 @@ function form_statement(args)
   local duration = args.duration
   local progress = tonumber(args.progress)
   local current_time = args.current_time
-  if progress >= threshold then
-    status = "complete"
-  end
   local base_url = "https://yet.systems/xapi/profiles/vlc"
   local verb = base_url .. "/verbs/" .. status
+  
+  -- Override verb if we get a completion
+  if is_completed and progress >= threshold then
+    verb = base_url ..  "/verbs/complete"
+    is_completed = true
+  end
   local activity_url = base_url .. "/activity"
   local video_url = activity_url .. "/video"
   local object = video_url .. "/" .. title
@@ -317,6 +322,7 @@ function form_statement(args)
   local duration_url = extension_url .. "duration"
   local progress_url = extension_url .. "progress"
   local current_time_url = extension_url .. "currentTime"
+  local status_url = extension_url .. "status"
 
     -- Manually construct the JSON string with results
   local json_statement =
@@ -339,6 +345,7 @@ function form_statement(args)
         '"extensions": {' ..
           '"' .. duration_url .. '": ' .. duration .. ',' ..
           '"' .. progress_url .. '": ' .. progress .. ',' ..
+          '"' .. status_url .. '": ' .. status .. ',' ..
           '"' .. current_time_url .. '": ' .. current_time ..
         '}' ..
       '}' ..
@@ -366,7 +373,7 @@ function post_request(json_body)
   -- Encode API key and secret as Base64 for Basic Auth
   local auth = "Basic " .. base64_encode(api_key .. ":" .. api_secret)
     -- Construct the curl command to make the HTTP POST request
-  local command = 'curl -X POST ' .. api_url .. ' '
+  local command = 'curl -X POST ' .. api_url .. '/statements '
       .. '-H "Content-Type: application/json" '
       .. '-H "Authorization: ' .. auth .. '" '
       .. '-H "X-Experience-API-Version: 1.0.3" '
