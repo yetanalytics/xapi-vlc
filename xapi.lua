@@ -311,7 +311,7 @@ function form_statement(args)
   local verb = base_url .. "/verbs/" .. status
   
   -- Override verb if we get a completion
-  if is_completed and progress >= threshold then
+  if is_completed == false and progress >= threshold then
     verb = base_url ..  "/verbs/complete"
     is_completed = true
   end
