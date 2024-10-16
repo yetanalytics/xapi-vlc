@@ -345,7 +345,7 @@ function form_statement(args)
         '"extensions": {' ..
           '"' .. duration_url .. '": ' .. duration .. ',' ..
           '"' .. progress_url .. '": ' .. progress .. ',' ..
-          '"' .. status_url .. '": ' .. status .. ',' ..
+          '"' .. status_url .. '": "' .. status .. '",' ..
           '"' .. current_time_url .. '": ' .. current_time ..
         '}' ..
       '}' ..
