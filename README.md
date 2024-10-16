@@ -4,6 +4,13 @@ An XAPI integrated VLC player
 
 ### Setup
 
+0) (optional) `make configure` will setup the configuration files for the plugin. to override defaults, run the command with the appropriate overrides. Example being: `make configure THRESHOLD=0.87`. The following is a list of variables and what they mean.
+  - `THRESHOLD` - Decimal value between 0 and 1 that represents point in video considered a completion. Once a video reaches this threshold, the plugin will issue a completion statement
+  - `API_KEY` - API key for LRS
+  - `API_SECRET` - API Secret for LRS
+  - `API_URL` - API Url for LRS
+  - `API_HOMEPAGE` - system that identifies user. In the statement this is set at `actor.account.homePage`.
+
 1) Run `make install` . This will move the plugin into the appropriate directory for VLC.
 2) Open VLC. when you do, click on the view dropdown and click 'xAPI Integration.'
 3) Enter the fields in the form:
@@ -11,7 +18,7 @@ An XAPI integrated VLC player
 - Homepage URL: Domain specific URL to identify from which system the user is located
 - API Key: Key for LRS
 - API Secret: Secret for LRS
-- API URL: URL for lrs (example: http://localhost:8080/xapi/statements)
+- API URL: URL for LRS (example: http://localhost:8080/xapi)
 
 4) Play a video of your choice and verify the data is flowing from the LRS.
 
