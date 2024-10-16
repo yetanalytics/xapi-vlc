@@ -28,7 +28,7 @@ configure() {
   # Variables to store the required options
   local api_key=""
   local api_secret=""
-  local api_url=""
+  local api_endpoint=""
   local threshold=""
   local homepage=""
 
@@ -42,7 +42,7 @@ configure() {
         api_secret="$OPTARG"
         ;;
       u)
-        api_url="$OPTARG"
+        api_endpoint="$OPTARG"
         ;;
       t)
         threshold="$OPTARG"
@@ -51,7 +51,7 @@ configure() {
         homepage="$OPTARG"
         ;;
       *)
-        echo "Usage: $0 -k <api_key> -s <api_secret> -u <api_url> -t <threshold> -h <homepage>"
+        echo "Usage: $0 -k <api_key> -s <api_secret> -u <api_endpoint> -t <threshold> -h <homepage>"
         exit 1
         ;;
     esac
@@ -61,7 +61,7 @@ configure() {
   # Debugging: Output parsed values
   echo "API Key: $api_key"
   echo "API Secret: $api_secret"
-  echo "API URL: $api_url"
+  echo "API URL: $api_endpoint"
   echo "Threshold: $threshold"
   echo "API Homepage: $homepage"
 
@@ -69,7 +69,7 @@ configure() {
   # Write the key-value pairs to the file, only if they exist
   [[ -n "$api_key" ]] && echo "api_key = $api_key" >> "$xapi_config_file"
   [[ -n "$api_secret" ]] && echo "api_secret = $api_secret" >> "$xapi_config_file"
-  [[ -n "$api_url" ]] && echo "api_url = $api_url" >> "$xapi_config_file"
+  [[ -n "$api_endpoint" ]] && echo "api_endpoint = $api_endpoint" >> "$xapi_config_file"
   [[ -n "$threshold" ]] && echo "threshold = $threshold" >> "$threshold_config_file"
   [[ -n "$homepage" ]] && echo "api_homepage = $homepage" >> "$xapi_config_file"
 

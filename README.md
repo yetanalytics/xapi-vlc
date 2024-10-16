@@ -8,7 +8,7 @@ An XAPI integrated VLC player
   - `THRESHOLD` - Decimal value between 0 and 1 that represents point in video considered a completion. Once a video reaches this threshold, the plugin will issue a completion statement
   - `API_KEY` - API key for LRS
   - `API_SECRET` - API Secret for LRS
-  - `API_URL` - API Url for LRS
+  - `API_ENDPOINT` - API Endpoint for LRS
   - `API_HOMEPAGE` - system that identifies user. In the statement this is set at `actor.account.homePage`.
 
 1) Run `make install` . This will move the plugin into the appropriate directory for VLC.
