@@ -18,10 +18,16 @@ An XAPI integrated VLC player
 - Homepage URL: Domain specific URL to identify from which system the user is located
 - API Key: Key for LRS
 - API Secret: Secret for LRS
-- API URL: URL for LRS (example: http://localhost:8080/xapi)
+- API Endpoint: Endpoint for LRS (example: https://localhost:8080/xapi)
 
 4) Play a video of your choice and verify the data is flowing from the LRS.
 
 ### Dev
 
 All code is located at `xapi.lua`. In VLC you can go to the console log (via ctrl+M) to see what the code is doing. If you wish to update the plugin, just save your changes to `xapi.lua` and run `make install` again.
+
+### License
+
+Copyright © 2024 Yet Analytics, Inc.
+
+This module is licensed under the GNU Lesser General Public License 2.1 or later.

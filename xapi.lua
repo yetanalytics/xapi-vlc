@@ -10,7 +10,7 @@ end
 
 local api_key = ""
 local api_secret = ""
-local api_url = ""
+local api_endpoint = ""
 local api_homepage = ""
 local api_userid = ""
 local b='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
@@ -164,8 +164,8 @@ function load_config(file_path)
         api_key = value
       elseif key == "api_secret" then
         api_secret = value
-      elseif key == "api_url" then
-        api_url = value
+      elseif key == "api_endpoint" then
+        api_endpoint = value
       else
         vlc.msg.err("Unknown key " .. key .. " found in config at filepath " .. file_path)
       end
@@ -266,9 +266,9 @@ function show_api_settings_dialog()
     dlg:add_label("API Secret:", 1, 5)
     api_secret_input = dlg:add_password(api_secret, 1, 6)
 
-    dlg:add_label("API URL:", 1, 7)
-    api_url_input = dlg:add_text_input(api_url, 1, 8)
-
+    dlg:add_label("API Endpoint:", 1, 7)
+    api_endpoint_input = dlg:add_text_input(api_endpoint, 1, 8)
+    
     -- Add a Save button
     dlg:add_button("Save", save_api_settings, 1, 9)
 
@@ -280,13 +280,13 @@ end
 function save_api_settings()
     api_key = api_key_input:get_text()
     api_secret = api_secret_input:get_text()
-    api_url = api_url_input:get_text()
+    api_endpoint = api_endpoint_input:get_text()
     api_homepage = api_homepage_input:get_text()
 
     write_config({api_homepage = api_homepage,
                   api_key = api_key,
                   api_secret = api_secret,
-                  api_url = api_url}, config_file_path)
+                  api_endpoint = api_endpoint}, config_file_path)
 
     -- Close the dialog after saving
     close_dialog()
@@ -373,7 +373,8 @@ function post_request(json_body)
   -- Encode API key and secret as Base64 for Basic Auth
   local auth = "Basic " .. base64_encode(api_key .. ":" .. api_secret)
     -- Construct the curl command to make the HTTP POST request
-  local command = 'curl -X POST ' .. api_url .. '/statements '
+
+  local command = 'curl -X POST ' .. api_endpoint .. '/statements '
       .. '-H "Content-Type: application/json" '
       .. '-H "Authorization: ' .. auth .. '" '
       .. '-H "X-Experience-API-Version: 1.0.3" '
