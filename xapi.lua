@@ -181,6 +181,12 @@ function load_threshold_config(file_path)
     for key, value in pairs(config) do
       if key == "threshold" then
         threshold = tonumber(value)
+        
+        -- if someone sets the threshold too high it may never issue a completion
+        if threshold >= 0.98 then
+          threshold = 0.98
+        end
+
       else
         vlc.msg.err("Unknown threshold config. setting threshold to default (0.9)")
         threshold = 0.9
