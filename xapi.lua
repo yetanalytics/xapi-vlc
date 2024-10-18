@@ -15,13 +15,18 @@ local api_homepage = ""
 local api_userid = ""
 local b='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
 local config_file_path = ""
-
+local threshold_file_path = ""
+local threshold = 0.9
+local is_completed = false
 -- *************** Events ************
 
 function activate()
   api_userid = get_uid()
-  config_file_path = get_vlc_config_directory() .. "config.txt"
+  config_file_path = get_vlc_config_directory() .. "xapi-extension-config.txt"
+  threshold_file_path = get_vlc_config_directory() .. "xapi-threshold-config.txt"
   load_config(config_file_path)
+  load_threshold_config(threshold_file_path)
+  vlc.msg.info("threshold value is: "..threshold)
   vlc.msg.info("config_file_path: "..config_file_path)
   vlc.msg.info("UID is: " .. api_userid)
   show_api_settings_dialog()
@@ -38,6 +43,7 @@ end
 
 function input_changed()
     vlc.msg.info("[Now Playing] input_changed")
+    is_completed = false
 end
 
 function playing_changed()
@@ -169,6 +175,29 @@ function load_config(file_path)
   end
 end
 
+function load_threshold_config(file_path)
+  local config = read_config(file_path)
+  if config then
+    for key, value in pairs(config) do
+      if key == "threshold" then
+        threshold = tonumber(value)
+        
+        -- if someone sets the threshold too high it may never issue a completion
+        if threshold >= 0.98 then
+          threshold = 0.98
+        end
+
+      else
+        vlc.msg.err("Unknown threshold config. setting threshold to default (0.9)")
+        threshold = 0.9
+      end
+    end
+  else
+    vlc.msg.err("Unable to load threshold config. setting threshold to default (0.9)")
+    threshold = 0.9
+  end
+end
+
 function write_config(config, file_path)
   -- Open the file for writing ("w" overwrites the file)
   local file = io.open(file_path, "w")
@@ -282,10 +311,16 @@ function form_statement(args)
   local title = args.title
   local status = args.status
   local duration = args.duration
-  local progress = args.progress
+  local progress = tonumber(args.progress)
   local current_time = args.current_time
   local base_url = "https://yet.systems/xapi/profiles/vlc"
   local verb = base_url .. "/verbs/" .. status
+  
+  -- Override verb if we get a completion
+  if is_completed == false and progress >= threshold then
+    verb = base_url ..  "/verbs/complete"
+    is_completed = true
+  end
   local activity_url = base_url .. "/activity"
   local video_url = activity_url .. "/video"
   local object = video_url .. "/" .. title
@@ -293,6 +328,7 @@ function form_statement(args)
   local duration_url = extension_url .. "duration"
   local progress_url = extension_url .. "progress"
   local current_time_url = extension_url .. "currentTime"
+  local status_url = extension_url .. "status"
 
     -- Manually construct the JSON string with results
   local json_statement =
@@ -315,6 +351,7 @@ function form_statement(args)
         '"extensions": {' ..
           '"' .. duration_url .. '": ' .. duration .. ',' ..
           '"' .. progress_url .. '": ' .. progress .. ',' ..
+          '"' .. status_url .. '": "' .. status .. '",' ..
           '"' .. current_time_url .. '": ' .. current_time ..
         '}' ..
       '}' ..
@@ -342,6 +379,7 @@ function post_request(json_body)
   -- Encode API key and secret as Base64 for Basic Auth
   local auth = "Basic " .. base64_encode(api_key .. ":" .. api_secret)
     -- Construct the curl command to make the HTTP POST request
+
   local command = 'curl -X POST ' .. api_endpoint .. '/statements '
       .. '-H "Content-Type: application/json" '
       .. '-H "Authorization: ' .. auth .. '" '
