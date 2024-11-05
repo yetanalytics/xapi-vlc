@@ -339,7 +339,7 @@ function insert_template_data(data)
 
     -- Replace placeholders with data values
     local result = template_content:gsub("#(%w+)", function(key)
-        return '"' .. data[key] or "" .. '"'
+        return '"' .. (data[key] or "") .. '"'
     end)
 
     return result
