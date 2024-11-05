@@ -1,10 +1,10 @@
 {
-  "actor" {
-    "account" {
+  "actor": {
+    "account": {
       "homePage": #API_HOMEPAGE,
       "name": #API_USERID
     },
-    "objectType" "Agent"
+    "objectType": "Agent"
   },
   "verb": {
     "id": #VERB
