@@ -335,10 +335,12 @@ end
 function insert_template_data(data)
     -- Read the template content
     local template_content, err = read_template()
+    vlc.msg.info("Template: " .. template_content)
     if not template_content then return nil, err end
 
     -- Replace placeholders with data values
     local result = template_content:gsub("#(%w+)", function(key)
+        vlc.msg.info("Key: " .. key)
         return '"' .. (data[key] or "") .. '"'
     end)
 
