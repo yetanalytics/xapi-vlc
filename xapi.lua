@@ -18,6 +18,7 @@ local config_file_path = ""
 local threshold_file_path = ""
 local threshold = 0.9
 local is_completed = false
+local statement_template = ""
 -- *************** Events ************
 
 function activate()
@@ -30,6 +31,7 @@ function activate()
   vlc.msg.info("config_file_path: "..config_file_path)
   vlc.msg.info("UID is: " .. api_userid)
   show_api_settings_dialog()
+  statement_template = read_template()
 
   if socket and http then
     vlc.msg.info("LuaSocket and socket.http are available!")
@@ -68,6 +70,11 @@ function trim(s)
   return (s:gsub("^%s*(.-)%s*$", "%1"))
 end
 
+-- necessary to deal with \ appearing in Windows usernames
+function sanitize(s)
+  return string.gsub(trim(s),"\\", "")
+end
+
 function get_uid()
   local command = 'whoami '
   local handle = io.popen(command)
@@ -76,7 +83,7 @@ function get_uid()
   if not username then
     return ""
   else
-    return trim(username)
+    return sanitize(username)
   end
 end
 
@@ -323,8 +330,11 @@ end
 function read_template()
   local template_file_path = get_vlc_config_directory() .. "xapi.json.template"
   local file = io.open(template_file_path, "r")
-  if not file then return nil, "Could not open file: " .. template_file_path end
-    
+  if not file then
+    vlc.msg.warn("Missing template file at: " .. template_file_path)
+    return
+  end
+  
   local content = file:read("*all")
   file:close()
   
@@ -332,15 +342,10 @@ function read_template()
 end
 
 -- function for inserting data into template
-function insert_template_data(data)
-    -- Read the template content
-    local template_content, err = read_template()
-    vlc.msg.info("Template: " .. template_content)
-    if not template_content then return nil, err end
+function fill_template(data, template)
 
     -- Replace placeholders with data values
-    local result = template_content:gsub("#([%w_]+)", function(key)
-        vlc.msg.info("Key: " .. key)
+    local result = template:gsub("#([%w_]+)", function(key)
         return '"' .. (data[key] or "") .. '"'
     end)
 
@@ -385,7 +390,7 @@ function form_statement(args)
     CURRENT_TIME_URL = current_time_url,
     CURRENT_TIME = current_time
   }
-  local statement = insert_template_data(template_table)
+  local statement = fill_template(template_table, statement_template)
   return statement
 end
 
