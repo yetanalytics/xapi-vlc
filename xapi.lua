@@ -65,7 +65,8 @@ end
 -- *************** Read Config ************
 
 function trim(s)
-  return (s:gsub("^%s*(.-)%s*$", "%1"))
+  local trimmed = (s:gsub("^%s*(.-)%s*$", "%1"))
+  return string.gsub(trimmed, "\\", "")
 end
 
 function get_uid()
@@ -333,26 +334,26 @@ function form_statement(args)
     -- Manually construct the JSON string with results
   local json_statement =
     '{' ..
-      '"actor": {' ..
-        '"account": {' ..
-          '"homePage": "' .. api_homepage .. '",' ..
-          '"name": "' .. api_userid .. '"' ..
+      '\\\"actor\\\": {' ..
+        '\\\"account\\\": {' ..
+          '\\\"homePage\\\": \\\"' .. api_homepage .. '\\\",' ..
+          '\\\"name\\\": \\\"' .. api_userid .. '\\\"' ..
         '},' ..
-        '"objectType": "Agent"' ..
+        '\\\"objectType\\\": \\\"Agent\\\"' ..
       '},' ..
-      '"verb": {' ..
-        '"id": "' .. verb .. '"' ..
+      '\\\"verb\\\": {' ..
+        '\\\"id\\\": \\\"' .. verb .. '\\\"' ..
       '},' ..
-      '"object": {' ..
-        '"id": "' .. object .. '",' ..
-        '"objectType": "Activity"' ..
+      '\\\"object\\\": {' ..
+        '\\\"id\\\": \\\"' .. object .. '\\\",' ..
+        '\\\"objectType\\\": \\\"Activity\\\"' ..
       '},' ..
-      '"result": {' ..
-        '"extensions": {' ..
-          '"' .. duration_url .. '": ' .. duration .. ',' ..
-          '"' .. progress_url .. '": ' .. progress .. ',' ..
-          '"' .. status_url .. '": "' .. status .. '",' ..
-          '"' .. current_time_url .. '": ' .. current_time ..
+      '\\\"result\\\": {' ..
+        '\\\"extensions\\\": {' ..
+          '\\\"' .. duration_url .. '\\\": ' .. duration .. ',' ..
+          '\\\"' .. progress_url .. '\\\": ' .. progress .. ',' ..
+          '\\\"' .. status_url .. '\\\": \\\"' .. status .. '\\\",' ..
+          '\\\"' .. current_time_url .. '\\\": ' .. current_time ..
         '}' ..
       '}' ..
     '}'
@@ -380,11 +381,11 @@ function post_request(json_body)
   local auth = "Basic " .. base64_encode(api_key .. ":" .. api_secret)
     -- Construct the curl command to make the HTTP POST request
 
-  local command = 'curl -X POST ' .. api_endpoint .. '/statements '
+  local command = 'curl.exe -X POST ' .. api_endpoint .. '/statements '
       .. '-H "Content-Type: application/json" '
       .. '-H "Authorization: ' .. auth .. '" '
       .. '-H "X-Experience-API-Version: 1.0.3" '
-      .. '-d \'' .. json_body .. '\''
+      .. '-d \"' .. json_body .. '\"'
 
   vlc.msg.info("command: " .. command)
 
