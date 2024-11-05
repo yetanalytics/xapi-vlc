@@ -221,6 +221,18 @@ end
 
 -- *************** Hook ************
 
+-- URL Encode function, based on the following gist: https://gist.github.com/liukun/f9ce7d6d14fa45fe9b924a3eed5c3d99
+function urlencode(url)
+  local char_to_hex = function(c)
+    return string.format("%%%02X", string.byte(c))
+  end
+
+  url = url:gsub("\n", "\r\n")
+  url = url:gsub("([^%w ])", char_to_hex)
+  url = url:gsub(" ", "+")
+  return url
+end
+
 -- Function to retrieve metadata and send it off
 function send_metadata(input, status)
   if not input then
@@ -247,7 +259,7 @@ function send_metadata(input, status)
   vlc.msg.info("Current Time: " .. current_time .. " seconds")
   vlc.msg.info("Current Position: " .. (position * 100) .. "%")
 
-  local statement = form_statement({title = title,
+  local statement = form_statement({title = urlencode(title),
                                     status = status,
                                     duration = tostring(duration),
                                     current_time = tostring(current_time),
