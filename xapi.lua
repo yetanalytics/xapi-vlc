@@ -339,7 +339,7 @@ function insert_template_data(data)
     if not template_content then return nil, err end
 
     -- Replace placeholders with data values
-    local result = template_content:gsub("#(%w+)", function(key)
+    local result = template_content:gsub("#([%w_]+)", function(key)
         vlc.msg.info("Key: " .. key)
         return '"' .. (data[key] or "") .. '"'
     end)
