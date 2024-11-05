@@ -390,13 +390,25 @@ end
 function post_request(json_body)
   -- Encode API key and secret as Base64 for Basic Auth
   local auth = "Basic " .. base64_encode(api_key .. ":" .. api_secret)
-    -- Construct the curl command to make the HTTP POST request
+    -- Construct the curl command to make the HTTP POST request_sync
+  local command = ""
 
-  local command = 'curl -X POST ' .. api_endpoint .. '/statements '
+
+  if package.config:sub(1,1) == '/' then
+    -- Linux/MacOS
+    command = 'curl -X POST ' .. api_endpoint .. '/statements '
       .. '-H "Content-Type: application/json" '
       .. '-H "Authorization: ' .. auth .. '" '
       .. '-H "X-Experience-API-Version: 1.0.3" '
       .. '-d \'' .. json_body .. '\''
+  else
+    -- Windows
+    command = 'curl.exe -X POST ' .. api_endpoint .. '/statements '
+      .. '-H "Content-Type: application/json" '
+      .. '-H "Authorization: ' .. auth .. '" '
+      .. '-H "X-Experience-API-Version: 1.0.3" '
+      .. '-d \"' .. json_body .. '\"'
+  end
 
   vlc.msg.info("command: " .. command)
 
