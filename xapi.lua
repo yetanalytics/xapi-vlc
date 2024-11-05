@@ -23,7 +23,7 @@ local is_completed = false
 function activate()
   api_userid = get_uid()
   config_file_path = get_vlc_config_directory() .. "xapi-extension-config.txt"
-  threshold_file_path = get_vlc_config_directory() .. "xapi-threshold-config.txt"
+  threshold_file_path = get_vlc_config_directory() .. "xapi-threshold-config.txt" 
   load_config(config_file_path)
   load_threshold_config(threshold_file_path)
   vlc.msg.info("threshold value is: "..threshold)
@@ -319,6 +319,32 @@ end
 
 -- *************** xAPI Statement ************
 
+-- function for reading template into a string
+function read_template()
+  local template_file_path = get_vlc_config_directory() .. "xapi.json.template"
+  local file = io.open(template_file_path, "r")
+  if not file then return nil, "Could not open file: " .. template_file_path end
+    
+  local content = file:read("*all")
+  file:close()
+  
+  return content
+end
+
+-- function for inserting data into template
+function insert_template_data(data)
+    -- Read the template content
+    local template_content, err = read_template()
+    if not template_content then return nil, err end
+
+    -- Replace placeholders with data values
+    local result = template_content:gsub("#(%w+)", function(key)
+        return '"' .. data[key] or "" .. '"'
+    end)
+
+    return result
+end
+
 function form_statement(args)
   local title = args.title
   local status = args.status
@@ -342,33 +368,23 @@ function form_statement(args)
   local current_time_url = extension_url .. "currentTime"
   local status_url = extension_url .. "status"
 
-    -- Manually construct the JSON string with results
-  local json_statement =
-    '{' ..
-      '"actor": {' ..
-        '"account": {' ..
-          '"homePage": "' .. api_homepage .. '",' ..
-          '"name": "' .. api_userid .. '"' ..
-        '},' ..
-        '"objectType": "Agent"' ..
-      '},' ..
-      '"verb": {' ..
-        '"id": "' .. verb .. '"' ..
-      '},' ..
-      '"object": {' ..
-        '"id": "' .. object .. '",' ..
-        '"objectType": "Activity"' ..
-      '},' ..
-      '"result": {' ..
-        '"extensions": {' ..
-          '"' .. duration_url .. '": ' .. duration .. ',' ..
-          '"' .. progress_url .. '": ' .. progress .. ',' ..
-          '"' .. status_url .. '": "' .. status .. '",' ..
-          '"' .. current_time_url .. '": ' .. current_time ..
-        '}' ..
-      '}' ..
-    '}'
-  return json_statement
+  -- form a template table for insertion
+  local template_table = {
+    API_HOMEPAGE = api_homepage,
+    API_USERID = api_userid,
+    VERB = verb,
+    OBJECT = object,
+    DURATION_URL = duration_url,
+    DURATION = duration,
+    PROGRESS_URL = progress_url,
+    PROGRESS = progress,
+    STATUS_URL = status_url,
+    STATUS = status,
+    CURRENT_TIME_URL = current_time_url,
+    CURRENT_TIME = current_time
+  }
+  local statement = insert_template_data(template_table)
+  return statement
 end
 
 -- *************** Rest Client ************
