@@ -1,4 +1,10 @@
 #!/bin/bash
+source "$(dirname "$0")/get-config-dir.sh"
+
+# copy template into config directory
+TARGET_TEMPLATE_PATH="$(get_vlc_config_directory)xapi.json.template"
+SOURCE_TEMPLATE="templates/xapi.json.template"
+cp "$SOURCE_TEMPLATE" "$TARGET_TEMPLATE_PATH"
 
 # Set the source file path
 SOURCE_FILE="xapi.lua"
