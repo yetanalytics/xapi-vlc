@@ -21,15 +21,17 @@ An XAPI integrated VLC player
 - API Secret: Secret for LRS
 - API Endpoint: Endpoint for LRS (example: https://localhost:8080/xapi)
 
-4) Play a video of your choice and verify the data is flowing from the LRS.
+4) Play a video of your choice and verify the data is flowing from an LRS.
 
 #### Windows
-1) right click on the file located at xapi-vlc\scripts\windows\install.ps1 and click "Run with PowerShell"
-2) configuration coming soon...
+1) double click the installation script located at .\scripts\windows\install.bat
+2) (optional) fill out the fields appropriately
+3) Open VLC, click the view dropdown and click 'xAPI Integration.' If you did step 2 those fields should be filled out already.
+4) Play a video of your choice and verify the data is flowing from an LRS.
 
 ### Dev
 
-All code is located at `xapi.lua`. In VLC you can go to the console log (via ctrl+M) to see what the code is doing. If you wish to update the plugin, just save your changes to `xapi.lua` and run `make install` again.
+- All code is located at `xapi.lua`. In VLC you can go to the console log (via ctrl+M) to see what the code is doing. If you wish to update the plugin, just save your changes to `xapi.lua` and run `make install` again.
 
 ### License
 
