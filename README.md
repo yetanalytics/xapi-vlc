@@ -4,6 +4,7 @@ An XAPI integrated VLC player
 
 ### Setup
 
+#### Linux/MacOS/WSL
 0) (optional) `make configure` will setup the configuration files for the plugin. to override defaults, run the command with the appropriate overrides. Example being: `make configure THRESHOLD=0.87`. The following is a list of variables and what they mean.
   - `THRESHOLD` - Decimal value between 0 and 1 that represents point in video considered a completion. Once a video reaches this threshold, the plugin will issue a completion statement
   - `API_KEY` - API key for LRS
@@ -21,6 +22,10 @@ An XAPI integrated VLC player
 - API Endpoint: Endpoint for LRS (example: https://localhost:8080/xapi)
 
 4) Play a video of your choice and verify the data is flowing from the LRS.
+
+#### Windows
+1) right click on the file located at xapi-vlc\scripts\windows\install.ps1 and click "Run with PowerShell"
+2) configuration coming soon...
 
 ### Dev
 
