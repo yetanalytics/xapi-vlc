@@ -1,0 +1,24 @@
+{
+  "actor": {
+    "account": {
+      "homePage": #API_HOMEPAGE,
+      "name": #API_USERID
+    },
+    "objectType": "Agent"
+  },
+  "verb": {
+    "id": #VERB
+  },
+  "object": {
+    "id": #OBJECT,
+    "objectType": "Activity"
+  },
+  "result": {
+    "extensions": {
+      #DURATION_URL: #DURATION,
+      #PROGRESS_URL: #PROGRESS,
+      #STATUS_URL: #STATUS,
+      #CURRENT_TIME_URL: #CURRENT_TIME
+    }
+  }
+}

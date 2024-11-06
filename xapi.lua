@@ -18,18 +18,20 @@ local config_file_path = ""
 local threshold_file_path = ""
 local threshold = 0.9
 local is_completed = false
+local statement_template = ""
 -- *************** Events ************
 
 function activate()
   api_userid = get_uid()
   config_file_path = get_vlc_config_directory() .. "xapi-extension-config.txt"
-  threshold_file_path = get_vlc_config_directory() .. "xapi-threshold-config.txt"
+  threshold_file_path = get_vlc_config_directory() .. "xapi-threshold-config.txt" 
   load_config(config_file_path)
   load_threshold_config(threshold_file_path)
   vlc.msg.info("threshold value is: "..threshold)
   vlc.msg.info("config_file_path: "..config_file_path)
   vlc.msg.info("UID is: " .. api_userid)
   show_api_settings_dialog()
+  statement_template = read_template()
 
   if socket and http then
     vlc.msg.info("LuaSocket and socket.http are available!")
@@ -68,6 +70,11 @@ function trim(s)
   return (s:gsub("^%s*(.-)%s*$", "%1"))
 end
 
+-- necessary to deal with \ appearing in Windows usernames
+function sanitize(s)
+  return string.gsub(trim(s),"\\", "")
+end
+
 function get_uid()
   local command = 'whoami '
   local handle = io.popen(command)
@@ -76,7 +83,7 @@ function get_uid()
   if not username then
     return ""
   else
-    return trim(username)
+    return sanitize(username)
   end
 end
 
@@ -221,6 +228,18 @@ end
 
 -- *************** Hook ************
 
+-- URL Encode function, based on the following gist: https://gist.github.com/liukun/f9ce7d6d14fa45fe9b924a3eed5c3d99
+function urlencode(url)
+  local char_to_hex = function(c)
+    return string.format("%%%02X", string.byte(c))
+  end
+
+  url = url:gsub("\n", "\r\n")
+  url = url:gsub("([^%w ])", char_to_hex)
+  url = url:gsub(" ", "+")
+  return url
+end
+
 -- Function to retrieve metadata and send it off
 function send_metadata(input, status)
   if not input then
@@ -247,7 +266,7 @@ function send_metadata(input, status)
   vlc.msg.info("Current Time: " .. current_time .. " seconds")
   vlc.msg.info("Current Position: " .. (position * 100) .. "%")
 
-  local statement = form_statement({title = title,
+  local statement = form_statement({title = urlencode(title),
                                     status = status,
                                     duration = tostring(duration),
                                     current_time = tostring(current_time),
@@ -307,6 +326,32 @@ end
 
 -- *************** xAPI Statement ************
 
+-- function for reading template into a string
+function read_template()
+  local template_file_path = get_vlc_config_directory() .. "xapi.json.template"
+  local file = io.open(template_file_path, "r")
+  if not file then
+    vlc.msg.warn("Missing template file at: " .. template_file_path)
+    return
+  end
+  
+  local content = file:read("*all")
+  file:close()
+  
+  return content
+end
+
+-- function for inserting data into template
+function fill_template(data, template)
+
+    -- Replace placeholders with data values
+    local result = template:gsub("#([%w_]+)", function(key)
+        return '"' .. (data[key] or "") .. '"'
+    end)
+
+    return result
+end
+
 function form_statement(args)
   local title = args.title
   local status = args.status
@@ -330,33 +375,23 @@ function form_statement(args)
   local current_time_url = extension_url .. "currentTime"
   local status_url = extension_url .. "status"
 
-    -- Manually construct the JSON string with results
-  local json_statement =
-    '{' ..
-      '"actor": {' ..
-        '"account": {' ..
-          '"homePage": "' .. api_homepage .. '",' ..
-          '"name": "' .. api_userid .. '"' ..
-        '},' ..
-        '"objectType": "Agent"' ..
-      '},' ..
-      '"verb": {' ..
-        '"id": "' .. verb .. '"' ..
-      '},' ..
-      '"object": {' ..
-        '"id": "' .. object .. '",' ..
-        '"objectType": "Activity"' ..
-      '},' ..
-      '"result": {' ..
-        '"extensions": {' ..
-          '"' .. duration_url .. '": ' .. duration .. ',' ..
-          '"' .. progress_url .. '": ' .. progress .. ',' ..
-          '"' .. status_url .. '": "' .. status .. '",' ..
-          '"' .. current_time_url .. '": ' .. current_time ..
-        '}' ..
-      '}' ..
-    '}'
-  return json_statement
+  -- form a template table for insertion
+  local template_table = {
+    API_HOMEPAGE = api_homepage,
+    API_USERID = api_userid,
+    VERB = verb,
+    OBJECT = object,
+    DURATION_URL = duration_url,
+    DURATION = duration,
+    PROGRESS_URL = progress_url,
+    PROGRESS = progress,
+    STATUS_URL = status_url,
+    STATUS = status,
+    CURRENT_TIME_URL = current_time_url,
+    CURRENT_TIME = current_time
+  }
+  local statement = fill_template(template_table, statement_template)
+  return statement
 end
 
 -- *************** Rest Client ************
@@ -378,13 +413,25 @@ end
 function post_request(json_body)
   -- Encode API key and secret as Base64 for Basic Auth
   local auth = "Basic " .. base64_encode(api_key .. ":" .. api_secret)
-    -- Construct the curl command to make the HTTP POST request
+    -- Construct the curl command to make the HTTP POST request_sync
+  local command = ""
 
-  local command = 'curl -X POST ' .. api_endpoint .. '/statements '
+
+  if package.config:sub(1,1) == '/' then
+    -- Linux/MacOS
+    command = 'curl -X POST ' .. api_endpoint .. '/statements '
       .. '-H "Content-Type: application/json" '
       .. '-H "Authorization: ' .. auth .. '" '
       .. '-H "X-Experience-API-Version: 1.0.3" '
       .. '-d \'' .. json_body .. '\''
+  else
+    -- Windows
+    command = 'curl.exe -X POST ' .. api_endpoint .. '/statements '
+      .. '-H "Content-Type: application/json" '
+      .. '-H "Authorization: ' .. auth .. '" '
+      .. '-H "X-Experience-API-Version: 1.0.3" '
+      .. '-d \"' .. json_body .. '\"'
+  end
 
   vlc.msg.info("command: " .. command)
 
