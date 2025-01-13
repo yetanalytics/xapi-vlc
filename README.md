@@ -21,6 +21,6 @@ All code is located at `xapi.lua`. In VLC you can go to the console log (via ctr
 
 ### License
 
-Copyright © 2024 Yet Analytics, Inc.
+Copyright © 2024-2025 Yet Analytics, Inc.
 
 This module is licensed under the GNU Lesser General Public License 2.1 or later.
